@@ -34,6 +34,11 @@ namespace BP_CloudSpeechTest
 
 		public void Stop()
 		{
+			if (this.isStoped)
+			{
+				return;
+			}
+
 			this.waveIn.StopRecording();
 			this.isStoped = true;
 
