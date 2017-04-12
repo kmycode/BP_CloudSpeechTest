@@ -70,7 +70,7 @@ namespace BP_CloudSpeechTest
 				call.RequestStream.WriteAsync(initialRequest).Wait();
 
 				// 録音モデルの作成
-				var recorder = new RecordModel();
+				IAudioRecorder recorder = new RecordModel();
 
 				// 録音モデルが音声データを吐いたら、それをすかさずサーバに送信する
 				recorder.RecordDataAvailabled += (sender, e) =>
@@ -83,7 +83,7 @@ namespace BP_CloudSpeechTest
 						{
 							call.RequestStream.WriteAsync(new StreamingRecognizeRequest
 							{
-								AudioContent = ByteString.FromBase64(Convert.ToBase64String(e.Buffer, 0, e.Length)),
+								AudioContent = RecognitionAudio.FromBytes(e.Buffer, 0, e.Length).Content,
 							}).Wait();
 						}
 					}

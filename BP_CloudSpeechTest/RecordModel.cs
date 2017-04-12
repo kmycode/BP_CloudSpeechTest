@@ -7,12 +7,13 @@ using System.Threading.Tasks;
 
 namespace BP_CloudSpeechTest
 {
-	class RecordModel : IDisposable
+	class RecordModel : IAudioRecorder
 	{
 		#region 変数
 
 		private WaveInEvent waveIn;
 		private bool isStoped = false;
+		private bool isDisposed = false;
 
 		#endregion
 
@@ -20,6 +21,10 @@ namespace BP_CloudSpeechTest
 
 		public void Start()
 		{
+			if (this.isDisposed)
+			{
+				throw new ObjectDisposedException("RecordModel");
+			}
 			if (this.waveIn != null)
 			{
 				return;
@@ -34,6 +39,10 @@ namespace BP_CloudSpeechTest
 
 		public void Stop()
 		{
+			if (this.isDisposed)
+			{
+				throw new ObjectDisposedException("RecordModel");
+			}
 			if (this.isStoped)
 			{
 				return;
@@ -49,19 +58,25 @@ namespace BP_CloudSpeechTest
 
 		public void Dispose()
 		{
+			if (this.isDisposed)
+			{
+				throw new ObjectDisposedException("RecordModel");
+			}
+
 			this.Stop();
+			GC.SuppressFinalize(this);
+			this.isDisposed = true;
 		}
 
 		~RecordModel()
 		{
 			this.Dispose();
-			GC.SuppressFinalize(this);
 		}
 
 		private void OnDataAvailable(object sender, WaveInEventArgs e)
 		{
-			this.RecordDataAvailabled?.Invoke(this, new RecordDataAvailabledEventArgs(e.Buffer, e.BytesRecorded));
 			if (this.isStoped) return;
+			this.RecordDataAvailabled?.Invoke(this, new RecordDataAvailabledEventArgs(e.Buffer, e.BytesRecorded));
 		}
 		#endregion
 
@@ -70,18 +85,5 @@ namespace BP_CloudSpeechTest
 		public event RecordDataAvailabledEventHandler RecordDataAvailabled;
 
 		#endregion
-	}
-
-	public delegate void RecordDataAvailabledEventHandler(object sender, RecordDataAvailabledEventArgs e);
-	public class RecordDataAvailabledEventArgs : EventArgs
-	{
-		public byte[] Buffer { get; }
-		public int Length { get; }
-
-		public RecordDataAvailabledEventArgs(byte[] buffer, int length)
-		{
-			this.Buffer = buffer;
-			this.Length = length;
-		}
 	}
 }
